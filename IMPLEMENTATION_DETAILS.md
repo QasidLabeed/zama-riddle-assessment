@@ -34,3 +34,5 @@ The prompt I'll be using will be
 - Add the provide smart contract into the codebase and compile it using `npx hardhat compile` to generate the ABI
 - Add UI for Riddle Game  
 - The Metamask connection is established using ethers library
+6. Add Riddle.ts under ignition/modules 
+7. Deploy contract on localhost using `npx hardhat ignition deploy ./ignition/modules/Riddle.ts --network localhost`
