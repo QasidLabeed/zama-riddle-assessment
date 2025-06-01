@@ -33,3 +33,4 @@ The prompt I'll be using will be
 - Setup hardhat on the local project https://hardhat.org/hardhat-runner/docs/guides/project-setup 
 - Add the provide smart contract into the codebase and compile it using `npx hardhat compile` to generate the ABI
 - Add UI for Riddle Game  
+- The Metamask connection is established using ethers library
