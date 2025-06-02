@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 
 import riddleArtifact from "../../hardhat/artifacts/contracts/Riddle.sol/OnchainRiddle.json";
+import Riddles from '../../riddles.js'
 
 export const CONTRACT_ABI = riddleArtifact.abi;
 export const CONTRACT_ADDRESS = "0x5fbdb2315678afecb367f032d93f642f64180aa3"; // Replace with your contract address
@@ -12,7 +13,7 @@ export default function Riddle() {
   const [provider, setProvider] = useState<ethers.JsonRpcApiProvider | null>(
     null
   );
-  const [riddle, setRidle] = useState<string | null>(null);
+  const [riddle, setRiddle] = useState<string | null>(null);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
   const [answer, setAnswer] = useState('');
   const [answerStatus, setAnswerStatus] = useState('');
@@ -42,11 +43,6 @@ export default function Riddle() {
       console.log("Connected to contract: " + _contract?.runner.address);
 
 
-      if (_contract) {
-        // Load contract data
-        loadContractData(_contract);
-      }
-
     } catch (err) {
       console.error("Wallet connection failed:", err);
     }
@@ -55,31 +51,36 @@ export default function Riddle() {
    * Loads the contract data and fetches the current riddle.
    *
    **/
-  const loadContractData = async (contractInstance: ethers.Contract) => {
+  const loadContractData = async () => {
     try {
-      const riddle = await contractInstance.riddle();
+      const riddle = await contract!.riddle();
 
       if (!riddle) {
-        setRiddle(contractInstance, "Question", "Answer");
+        //Find a random riddle from the list
+        const {question, answer}:{question:string, answer:string} = selectRandomRiddle()
+        console.log("Setting new riddle:", riddle);
+
+        setRiddleInContract(question, answer);
       }
       console.log("Current Riddle:", riddle);
-      setRidle(riddle);
+      setRiddle(riddle);
       // Update state or UI with the riddle
     } catch (err) {
       console.error("Failed to fetch riddle:", err);
     }
   };
 
-  const setRiddle = async (
-    contractInstance: ethers.Contract,
+  const setRiddleInContract = async (
     question: string,
     answer: string
   ) => {
     try {
       const answerHash = ethers.keccak256(ethers.toUtf8Bytes(answer));
 
-      const tx = await contractInstance.setRiddle(question, answerHash);
+      const tx = await contract!.setRiddle(question, answerHash);
       await tx.wait();
+      setRiddle(question);
+
       console.log("Riddle set successfully");
 
     } catch (err) {
@@ -104,15 +105,32 @@ export default function Riddle() {
     }
   };
 
+    const selectRandomRiddle = () => {
+    const riddlesLength = Riddles.length;
+    const randomNumber = Math.floor(Math.random() * riddlesLength);
+
+    const selectedRiddle = Riddles[randomNumber];
+    return selectedRiddle;
+  }
+
+  // Set a new riddle if none exists
+  const setRiddleHandler = async ()=>{
+    const {question, answer} = selectRandomRiddle();
+    await setRiddleInContract(question, answer);
+  }
+
    useEffect(() => {
     if (!contract) return;
 
+    //Load initial riddle or set a new one if not present
+    loadContractData()
 
     contract.on('AnswerAttempt', (user, correct) => {
       setAnswerStatus(`Attempt by ${user} — ${correct ? 'Correct!' : 'Incorrect.'}`);
     });
 
     contract.on('Winner', (user) => {
+      setRiddleHandler();
       setAnswerStatus(`Riddle solved by ${user}`);
     });
 
@@ -130,7 +148,7 @@ export default function Riddle() {
 
         <div className="bg-gray-700 rounded-lg p-4 mb-6">
           <h2 className="text-lg font-semibold mb-2">Current Riddle:</h2>
-          <p className="text-gray-300 italic">{"Riddle Question" + riddle}</p>
+          <p className="text-gray-300 italic">{"Riddle Question " + riddle}</p>
         </div>
 
         <div className="space-y-3">

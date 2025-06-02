@@ -1,4 +1,4 @@
-[
+const Riddles = [
   {
     "question": "What has keys but can’t open locks?",
     "answer": "keyboard"
@@ -40,3 +40,5 @@
     "answer": "ton"
   }
 ]
+
+export default Riddles;
