@@ -19,6 +19,12 @@ To generate a new riddle, I'll use OpenAI GPT-4 model and will connect using Ope
 The prompt I'll be using will be 
 > Give me a riddle with it's answer in JSON format having key question and answer
 
+BUT considering this option will require paid plan for OpenAI, I'll be shifting to generating Riddles in advance and storing them in the App.
+
+On runtime, the bot can pick a random one from the list as the next riddle.
+
+The riddles are available in `riddles.json` file
+
 **Answer format**
 ```json
 {
