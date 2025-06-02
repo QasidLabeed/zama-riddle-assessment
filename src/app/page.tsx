@@ -14,6 +14,9 @@ export default function Riddle() {
   );
   const [riddle, setRidle] = useState<string | null>(null);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
+  const [answer, setAnswer] = useState('');
+  const [answerStatus, setAnswerStatus] = useState('');
+
 
   useEffect(() => {
     //Connect to wallet
@@ -84,6 +87,42 @@ export default function Riddle() {
     }
   };
 
+
+  const submitAnswer = async () => {
+    if (!contract || !answer) return;
+
+    try {
+      setAnswerStatus('Submitting answer...');
+
+      const tx = await contract.submitAnswer(answer);
+      await tx.wait();
+      setAnswerStatus('Answer submitted!');
+      setAnswer('');
+    } catch (err) {
+      console.error(err);
+      setAnswerStatus('Error submitting answer');
+    }
+  };
+
+   useEffect(() => {
+    if (!contract) return;
+
+
+    contract.on('AnswerAttempt', (user, correct) => {
+      setAnswerStatus(`Attempt by ${user} — ${correct ? 'Correct!' : 'Incorrect.'}`);
+    });
+
+    contract.on('Winner', (user) => {
+      setAnswerStatus(`Riddle solved by ${user}`);
+    });
+
+    return () => {
+      contract.removeAllListeners();
+    };
+  }, [contract]);
+
+    
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-gray-900 text-white flex items-center justify-center p-6">
       <div className="bg-gray-800 rounded-2xl shadow-2xl p-8 w-full max-w-xl border border-gray-700">
@@ -98,12 +137,20 @@ export default function Riddle() {
           <input
             className="w-full p-3 rounded-lg bg-gray-700 border border-gray-600 text-white placeholder-gray-400"
             placeholder="Enter your answer"
-            value={"Answer"}
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            // disabled={!account}
           />
-          <button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg text-lg font-medium">
+          <button onClick={submitAnswer} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg text-lg font-medium">
             Submit Answer
           </button>
         </div>
+
+         {answerStatus && (
+          <div className="mt-4 text-sm text-center text-gray-300">
+            {answerStatus}
+          </div>
+        )}
       </div>
     </div>
   );
