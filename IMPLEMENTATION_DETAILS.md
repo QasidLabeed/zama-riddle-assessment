@@ -1,4 +1,3 @@
-Add commentMore actions
 #### Thought Process
 
 **Smart Contract and UI**
