@@ -26,6 +26,12 @@ export default function Riddle() {
 
   const connectWallet = async () => {
 
+    //Ensure MetaMask or another wallet is installed
+    if(!window.ethereum) {
+      alert("Please install MetaMask or another Ethereum wallet to use this dApp.");
+      return;
+    }
+
     try {
       const _provider = new ethers.JsonRpcProvider("http://127.0.0.1:8545");
       setProvider(_provider);
